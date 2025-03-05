@@ -1,10 +1,18 @@
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from telegram_bot import handlers
+import os
+from config import BOT_TOKEN
 
 
 def run_bot():
     # Создаем экземпляр приложения бота
-    application = Application.builder().token('YOUR_BOT_TOKEN').build()
+    # Получаем токен из переменных окружения или из config.py
+    token = os.environ.get('BOT_TOKEN', BOT_TOKEN)
+    
+    if token == 'YOUR_BOT_TOKEN':
+        raise ValueError("Пожалуйста, установите правильный токен бота в переменной окружения BOT_TOKEN или в файле config.py")
+    
+    application = Application.builder().token(token).build()
     
     # Регистрируем обработчики команд
     application.add_handler(CommandHandler('start', handlers.start))
