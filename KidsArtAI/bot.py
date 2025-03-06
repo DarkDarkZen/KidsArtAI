@@ -1,5 +1,6 @@
 import asyncio
 from telegram.ext import Application
+from telegram import Update
 from config import BOT_TOKEN
 from handlers import group_bot, user_history_bot, ai_stream
 from utils.logger import setup_logging
@@ -18,7 +19,7 @@ def main():
     ai_stream.setup_handlers(app)
 
     # Запуск бота в режиме polling
-    app.run_polling(allowed_updates=Application.ALL_TYPES)
+    app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
     main() 
