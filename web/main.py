@@ -10,16 +10,14 @@ from datetime import datetime
 import sys
 import base64  # Добавляем импорт base64 для кодирования изображений
 
-# Добавляем путь к корневой директории проекта
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Инициализация OpenAI API ключа из переменной окружения
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Импортируем конфигурацию
-from config import OPENAI_API_KEY
-
-# Инициализация OpenAI
+# Инициализация OpenAI клиента, если ключ доступен
 from openai import AsyncOpenAI
-
-client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+client = None
+if OPENAI_API_KEY:
+    client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
 app = FastAPI()
 
@@ -61,6 +59,10 @@ async def analyze_drawing(image: UploadFile = File(...), language: str = Form("r
     """
     API-эндпоинт для анализа детского рисунка с использованием OpenAI.
     """
+    # Проверяем, инициализирован ли клиент OpenAI
+    if not client:
+        raise HTTPException(status_code=503, detail="OpenAI API не настроен. Проверьте переменную окружения OPENAI_API_KEY.")
+        
     try:
         # Проверка типа файла
         if not image.content_type.startswith("image/"):
@@ -162,6 +164,6 @@ async def analyze_drawing(image: UploadFile = File(...), language: str = Form("r
 
 if __name__ == "__main__":
     import uvicorn
-    # Получаем порт из переменной окружения или используем 8000 по умолчанию
-    port = int(os.getenv("PORT", 8000))
+    # Получаем порт из переменной окружения или используем 8080 по умолчанию
+    port = int(os.getenv("PORT", 8080))
     uvicorn.run(app, host="0.0.0.0", port=port)
