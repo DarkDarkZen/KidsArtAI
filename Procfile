@@ -1,0 +1,1 @@
+worker: python KidsArtAI/bot.py 

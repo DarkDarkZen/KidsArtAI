@@ -59,7 +59,7 @@ Telegram mini app с пользовательским интерфейсом д�
 # Documentation
 ## Example of Procfile for Railway:
 ```
-worker: python bot.py
+worker: python KidsArtAI/bot.py
 
 ```
 
