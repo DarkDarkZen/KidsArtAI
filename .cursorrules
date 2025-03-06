@@ -1,0 +1,4 @@
+Please use Russian language for all user menu options
+Telegram bot should use polling logic
+Keep in mind that this telegram bot will be deployed on railway.app platfrom, so include in the project all files related to this (like railway.json, ProcFile and etc)
+Think carefully step by step
