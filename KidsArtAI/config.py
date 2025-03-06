@@ -15,8 +15,3 @@ if not OPENAI_API_KEY:
     print("Предупреждение: Переменная окружения OPENAI_API_KEY не установлена.")
     print("Некоторые функции, связанные с OpenAI, могут быть недоступны.")
     # Не завершаем работу, так как это может быть не критично на начальном этапе 
-
-import uvicorn
-
-port = int(os.getenv("PORT", 8080))
-uvicorn.run(app, host="0.0.0.0", port=port) 

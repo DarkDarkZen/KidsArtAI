@@ -8,6 +8,7 @@ import aiofiles
 import uuid
 from datetime import datetime
 import sys
+import base64  # Добавляем импорт base64 для кодирования изображений
 
 # Добавляем путь к корневой директории проекта
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -49,6 +50,11 @@ async def health_check():
 async def index(request: Request):
     # Рендерим главный UI экран Telegram mini app
     return templates.TemplateResponse("index.html", {"request": request})
+
+# Добавляем обработчик корневого пути для Railway
+@app.get("/railway")
+async def railway_root():
+    return JSONResponse({"status": "KidsArtAI is running", "version": "1.0.0"})
 
 @app.post("/api/analyze")
 async def analyze_drawing(image: UploadFile = File(...), language: str = Form("ru")):
@@ -156,5 +162,6 @@ async def analyze_drawing(image: UploadFile = File(...), language: str = Form("r
 
 if __name__ == "__main__":
     import uvicorn
-    import base64  # Добавляем импорт base64 для кодирования изображений
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Получаем порт из переменной окружения или используем 8000 по умолчанию
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
