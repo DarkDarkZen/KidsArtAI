@@ -44,16 +44,20 @@ templates_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web/te
 templates = Jinja2Templates(directory=templates_dir)
 logger.info(f"Шаблоны инициализированы из директории: {templates_dir}")
 
-# Глобальная переменная для хранения экземпляра бота
+# Глобальные переменные
 bot_app = None
+bot_task = None
 
 @app.get("/health")
 async def health_check():
+    global bot_app, bot_task
     bot_status = "running" if bot_app and bot_app.is_running else "not running"
+    task_status = "running" if bot_task and not bot_task.done() else "not running"
     return JSONResponse({
         "status": "healthy", 
         "bot_token_preview": f"{BOT_TOKEN[:5]}...{BOT_TOKEN[-5:]}", 
-        "bot_status": bot_status
+        "bot_status": bot_status,
+        "task_status": task_status
     })
 
 @app.get("/")
@@ -63,22 +67,24 @@ async def index(request: Request):
 
 @app.get("/railway")
 async def railway_root():
+    global bot_app, bot_task
     bot_status = "running" if bot_app and bot_app.is_running else "not running"
+    task_status = "running" if bot_task and not bot_task.done() else "not running"
     return JSONResponse({
         "status": "DrawingMind is running", 
         "version": "1.0.0",
         "environment": os.environ.get("RAILWAY_ENVIRONMENT", "unknown"),
         "bot_token_preview": f"{BOT_TOKEN[:5]}...{BOT_TOKEN[-5:]}",
-        "bot_status": bot_status
+        "bot_status": bot_status,
+        "task_status": task_status
     })
 
-# Обработчик команды /start для Telegram бота
+# Обработчики Telegram бота
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Отправляет сообщение с кнопкой для запуска Telegram Mini App."""
     user = update.effective_user
     logger.info(f"Пользователь {user.id} запустил команду /start")
     
-    # Создаем кнопку для запуска веб-приложения
     keyboard = [
         [InlineKeyboardButton(
             "🎨 Analyze Child's Drawing", 
@@ -92,12 +98,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         reply_markup=reply_markup
     )
 
-# Обработчик команды /webapp для Telegram бота
 async def webapp(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Отправляет кнопку для запуска Telegram Mini App."""
     logger.info(f"Пользователь {update.effective_user.id} запустил команду /webapp")
     
-    # Создаем кнопку для запуска веб-приложения
     keyboard = [
         [InlineKeyboardButton(
             "🎨 Запустить приложение", 
@@ -111,19 +115,25 @@ async def webapp(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         reply_markup=reply_markup
     )
 
-# Обработчик для текстовых сообщений в Telegram боте
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Эхо-ответ на сообщение пользователя."""
     logger.info(f"Пользователь {update.effective_user.id} отправил сообщение: {update.message.text}")
     await update.message.reply_text(f"Вы сказали: {update.message.text}")
 
-async def run_bot():
-    """Запускает Telegram бота."""
+async def run_polling():
+    """Запускает polling для Telegram бота."""
     global bot_app
-    logger.info("Инициализация бота")
+    logger.info("Запуск polling для бота...")
+    await bot_app.run_polling(allowed_updates=Update.ALL_TYPES)
+
+@app.on_event("startup")
+async def startup_event():
+    """Запускает бота при старте FastAPI приложения."""
+    global bot_app, bot_task
+    logger.info("Инициализация бота при старте приложения")
     
     try:
-        # Создаем приложение
+        # Создаем приложение бота
         bot_app = Application.builder().token(BOT_TOKEN).build()
 
         # Регистрируем обработчики
@@ -131,36 +141,39 @@ async def run_bot():
         bot_app.add_handler(CommandHandler("webapp", webapp))
         bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
-        # Запускаем бота
-        logger.info("Запуск бота...")
+        # Инициализируем и запускаем бота
         await bot_app.initialize()
         await bot_app.start()
-        logger.info("Бот успешно запущен")
-        
-        # Запускаем polling в бесконечном цикле
-        async with bot_app:
-            logger.info("Запуск polling...")
-            await bot_app.run_polling(allowed_updates=Update.ALL_TYPES)
+        logger.info("Бот успешно инициализирован")
+
+        # Запускаем polling в отдельной задаче
+        bot_task = asyncio.create_task(run_polling())
+        logger.info("Задача polling запущена")
     except Exception as e:
         logger.error(f"Ошибка при запуске бота: {str(e)}")
+        if bot_app:
+            await bot_app.shutdown()
         raise
 
-async def run_web():
-    """Запускает веб-сервер."""
-    config = uvicorn.Config(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
-    server = uvicorn.Server(config)
-    await server.serve()
-
-async def main():
-    """Запускает и веб-сервер, и бота."""
-    logger.info("Запуск приложения")
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Останавливает бота при завершении работы приложения."""
+    global bot_app, bot_task
+    logger.info("Остановка бота...")
     
-    # Запускаем бота и веб-сервер параллельно
-    await asyncio.gather(
-        run_bot(),
-        run_web()
-    )
+    if bot_task:
+        bot_task.cancel()
+        try:
+            await bot_task
+        except asyncio.CancelledError:
+            pass
+    
+    if bot_app:
+        await bot_app.shutdown()
+    
+    logger.info("Бот остановлен")
 
 if __name__ == "__main__":
-    # Запускаем все асинхронно
-    asyncio.run(main()) 
+    port = int(os.environ.get("PORT", 8080))
+    logger.info(f"Запуск сервера на порту {port}")
+    uvicorn.run(app, host="0.0.0.0", port=port) 
