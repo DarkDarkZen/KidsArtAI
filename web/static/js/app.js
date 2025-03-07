@@ -56,6 +56,10 @@ const analyzeBtn = document.querySelector('.analyze-btn');
 const resultsModal = document.getElementById('results-modal');
 const resultsContainer = document.querySelector('.results-container');
 const closeModalBtn = document.querySelector('.close-btn');
+const dropArea = document.getElementById('drop-area');
+const selectedFileContainer = document.getElementById('selected-file');
+const fileName = document.getElementById('file-name');
+const demoBtn = document.querySelector('.demo-btn');
 
 // Функция для изменения языка
 function changeLanguage(lang) {
@@ -99,17 +103,13 @@ function handleImageUpload(file) {
     // Проверка типа файла
     const validTypes = ['image/jpeg', 'image/png', 'image/heic'];
     if (!validTypes.includes(file.type) && !file.name.toLowerCase().endsWith('.heic')) {
-        alert(translations[currentLang]['error-upload']);
+        alert('Unsupported file format. Please upload JPEG, PNG, or HEIC files.');
         return;
     }
     
-    // Создаем URL для предпросмотра
-    const imageUrl = URL.createObjectURL(file);
-    
-    // Показываем изображение
-    previewPlaceholder.hidden = true;
-    previewImage.src = imageUrl;
-    previewImage.hidden = false;
+    // Показываем имя выбранного файла
+    fileName.textContent = file.name;
+    selectedFileContainer.hidden = false;
     
     // Активируем кнопку анализа
     analyzeBtn.disabled = false;
@@ -117,12 +117,14 @@ function handleImageUpload(file) {
 
 // Функция для отправки изображения на сервер для анализа
 async function analyzeImage() {
-    // Проверяем, есть ли изображение
-    if (previewImage.hidden) return;
+    // Проверяем, есть ли выбранный файл
+    if (analyzeBtn.disabled) return;
     
     // Показываем индикатор загрузки
-    analyzeBtn.textContent = translations[currentLang]['loading'];
+    const originalText = analyzeBtn.textContent;
+    analyzeBtn.textContent = 'Analyzing...';
     analyzeBtn.classList.add('loading');
+    analyzeBtn.disabled = true;
     
     try {
         // Получаем файл из input
@@ -132,7 +134,6 @@ async function analyzeImage() {
         // Создаем FormData для отправки файла
         const formData = new FormData();
         formData.append('image', file);
-        formData.append('language', currentLang);
         
         // Отправляем запрос на сервер
         const response = await fetch('/api/analyze', {
@@ -151,13 +152,23 @@ async function analyzeImage() {
         displayResults(results);
     } catch (error) {
         console.error('Error analyzing image:', error);
-        alert(translations[currentLang]['error-analysis']);
+        
+        // Для демонстрации показываем тестовые результаты
+        if (demoMode) {
+            displayDemoResults();
+        } else {
+            alert('Error analyzing image. Please try again.');
+        }
     } finally {
         // Восстанавливаем кнопку
-        analyzeBtn.textContent = translations[currentLang]['analyze-btn'];
+        analyzeBtn.textContent = originalText;
         analyzeBtn.classList.remove('loading');
+        analyzeBtn.disabled = false;
     }
 }
+
+// Переменная для отслеживания демо-режима
+let demoMode = false;
 
 // Функция для отображения результатов анализа
 function displayResults(results) {
@@ -170,42 +181,42 @@ function displayResults(results) {
     // Добавляем каждый раздел анализа
     if (results.psychologicalAge) {
         resultsHTML += `<div class="result-item">
-            <h4>Психологический возраст</h4>
+            <h4>Psychological Age</h4>
             <p>${results.psychologicalAge}</p>
         </div>`;
     }
     
     if (results.imaginationLevel) {
         resultsHTML += `<div class="result-item">
-            <h4>Уровень развития воображения и интеллекта</h4>
+            <h4>Imagination & Intelligence</h4>
             <p>${results.imaginationLevel}</p>
         </div>`;
     }
     
     if (results.emotionalIntelligence) {
         resultsHTML += `<div class="result-item">
-            <h4>Эмоциональный интеллект</h4>
+            <h4>Emotional Intelligence</h4>
             <p>${results.emotionalIntelligence}</p>
         </div>`;
     }
     
     if (results.developmentLevel) {
         resultsHTML += `<div class="result-item">
-            <h4>Уровень умственного и эмоционального развития</h4>
+            <h4>Mental & Emotional Development</h4>
             <p>${results.developmentLevel}</p>
         </div>`;
     }
     
     if (results.physicalState) {
         resultsHTML += `<div class="result-item">
-            <h4>Физическое и психологическое состояние</h4>
+            <h4>Physical & Psychological State</h4>
             <p>${results.physicalState}</p>
         </div>`;
     }
     
     if (results.recommendations) {
         resultsHTML += `<div class="result-item recommendations">
-            <h4>Рекомендации</h4>
+            <h4>Recommendations</h4>
             <p>${results.recommendations}</p>
         </div>`;
     }
@@ -215,6 +226,20 @@ function displayResults(results) {
     
     // Показываем модальное окно
     resultsModal.hidden = false;
+}
+
+// Функция для отображения демо-результатов
+function displayDemoResults() {
+    const demoResults = {
+        psychologicalAge: "The drawing suggests a psychological age of around 5-6 years, which is characterized by the use of basic shapes and simplified representations of figures. The child is in the pre-schematic stage of artistic development.",
+        imaginationLevel: "The child demonstrates a moderate level of imagination, shown through the creative use of colors and the inclusion of various elements in the drawing. There's potential for further development with proper stimulation.",
+        emotionalIntelligence: "The drawing indicates a developing emotional intelligence. The child appears to understand basic emotions, as shown by the facial expressions in the drawing, but may need support in recognizing more complex emotional states.",
+        developmentLevel: "The mental and emotional development appears age-appropriate. The child shows the ability to organize thoughts and represent them visually, which is a positive sign of cognitive development.",
+        physicalState: "The drawing suggests normal physical development for the child's age. The pressure applied to the drawing tool and the control shown in creating lines indicate appropriate fine motor skills development.",
+        recommendations: "Encourage the child to explain their drawings to develop verbal expression. Provide various art materials to explore different textures and techniques. Consider regular drawing sessions where the child can express daily experiences, which will help develop emotional processing skills."
+    };
+    
+    displayResults(demoResults);
 }
 
 // Обработчики событий
@@ -292,20 +317,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Обработка Drag and Drop для загрузки изображений
-    const previewContainer = document.querySelector('.preview-container');
-    
-    previewContainer.addEventListener('dragover', (e) => {
+    dropArea.addEventListener('dragover', (e) => {
         e.preventDefault();
-        previewContainer.classList.add('dragover');
+        dropArea.classList.add('dragover');
     });
     
-    previewContainer.addEventListener('dragleave', () => {
-        previewContainer.classList.remove('dragover');
+    dropArea.addEventListener('dragleave', () => {
+        dropArea.classList.remove('dragover');
     });
     
-    previewContainer.addEventListener('drop', (e) => {
+    dropArea.addEventListener('drop', (e) => {
         e.preventDefault();
-        previewContainer.classList.remove('dragover');
+        dropArea.classList.remove('dragover');
         
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             const file = e.dataTransfer.files[0];
@@ -315,6 +338,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
             fileInput.files = dataTransfer.files;
+        }
+    });
+    
+    // Обработчик для кнопки Demo Mode
+    demoBtn.addEventListener('click', () => {
+        demoMode = !demoMode;
+        
+        if (demoMode) {
+            demoBtn.style.backgroundColor = 'rgba(138, 124, 255, 0.3)';
+            alert('Demo mode activated. Analysis will show sample results.');
+        } else {
+            demoBtn.style.backgroundColor = 'rgba(138, 124, 255, 0.15)';
+            alert('Demo mode deactivated.');
         }
     });
 }); 
