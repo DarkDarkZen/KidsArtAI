@@ -8,6 +8,14 @@ if not BOT_TOKEN:
     print("Установите переменную окружения BOT_TOKEN с вашим токеном Telegram бота.")
     print("Пример: export BOT_TOKEN='your_telegram_bot_token'")
     sys.exit(1)
+else:
+    # Выводим первые и последние 5 символов токена для диагностики
+    token_preview = f"{BOT_TOKEN[:5]}...{BOT_TOKEN[-5:]}"
+    print(f"Токен бота загружен успешно: {token_preview}")
+    
+    # Проверяем формат токена (должен содержать двоеточие)
+    if ":" not in BOT_TOKEN:
+        print("Предупреждение: Формат токена бота может быть неправильным. Токен должен содержать двоеточие.")
 
 # Получение API-ключа OpenAI из переменных окружения
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
