@@ -34,4 +34,5 @@ async def stream_openai_response(update: Update, context: ContextTypes.DEFAULT_T
 
 def setup_handlers(app):
     """Регистрация обработчика для сообщений, инициирующих OpenAI streaming."""
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, stream_openai_response)) 
+    # Используем группу 3 для самого низкого приоритета
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, stream_openai_response), group=3) 

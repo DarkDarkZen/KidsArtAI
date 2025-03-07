@@ -115,7 +115,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def setup_handlers(app):
     """Регистрация команд и обработчиков для истории сообщений."""
     setup_database()
-    app.add_handler(CommandHandler("start", cmd_start))
-    app.add_handler(CommandHandler("history", cmd_history))
-    app.add_handler(CommandHandler("stats", cmd_stats))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)) 
+    app.add_handler(CommandHandler("start", cmd_start), group=2)
+    app.add_handler(CommandHandler("history", cmd_history), group=2)
+    app.add_handler(CommandHandler("stats", cmd_stats), group=2)
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message), group=2) 

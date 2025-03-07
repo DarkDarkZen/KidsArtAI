@@ -21,6 +21,9 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Нажмите на кнопку ниже, чтобы загрузить и проанализировать рисунок:",
         reply_markup=reply_markup
     )
+    
+    # Возвращаем True, чтобы остановить обработку другими обработчиками
+    return True
 
 async def cmd_analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработчик команды /analyze для запуска Telegram Mini App."""
@@ -37,8 +40,12 @@ async def cmd_analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Нажмите на кнопку ниже, чтобы загрузить и проанализировать рисунок:",
         reply_markup=reply_markup
     )
+    
+    # Возвращаем True, чтобы остановить обработку другими обработчиками
+    return True
 
 def setup_handlers(app):
     """Регистрация обработчиков для Telegram Mini App."""
-    app.add_handler(CommandHandler("start", cmd_start))
-    app.add_handler(CommandHandler("analyze", cmd_analyze)) 
+    # Используем группу 0 для высокого приоритета (меньшее число = выше приоритет)
+    app.add_handler(CommandHandler("start", cmd_start), group=0)
+    app.add_handler(CommandHandler("analyze", cmd_analyze), group=0) 

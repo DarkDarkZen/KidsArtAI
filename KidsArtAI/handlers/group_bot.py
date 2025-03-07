@@ -85,9 +85,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def setup_handlers(app):
     """Регистрация команд и обработчиков для группового функционала."""
-    app.add_handler(CommandHandler("start", cmd_start))
-    app.add_handler(CommandHandler("help", cmd_help))
-    app.add_handler(CommandHandler("settings", cmd_settings))
-    app.add_handler(CommandHandler("warn", cmd_warn))
-    app.add_handler(ChatMemberHandler(track_members, ChatMemberHandler.CHAT_MEMBER))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)) 
+    # Используем группу 1 для более низкого приоритета
+    app.add_handler(CommandHandler("start", cmd_start), group=1)
+    app.add_handler(CommandHandler("help", cmd_help), group=1)
+    app.add_handler(CommandHandler("settings", cmd_settings), group=1)
+    app.add_handler(CommandHandler("warn", cmd_warn), group=1)
+    app.add_handler(ChatMemberHandler(track_members, ChatMemberHandler.CHAT_MEMBER), group=1)
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message), group=1) 
