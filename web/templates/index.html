@@ -4,54 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DrawingMind - Analyze Child's Drawing</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        telegram: {
+                            bg: '#17212b',
+                            card: '#242f3d',
+                            border: '#3b4a5a',
+                            text: '#ffffff',
+                            secondary: '#91a3b5',
+                            primary: '#8A7CFF',
+                            'primary-light': '#9f93ff'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://telegram.org/js/telegram-web-app.js" async></script>
 </head>
-<body>
-    <div class="container">
+<body class="bg-telegram-bg text-telegram-text">
+    <div class="container mx-auto px-4 min-h-screen flex flex-col">
         <!-- Заголовок -->
-        <h1 class="app-title">DrawingMind</h1>
+        <h1 class="text-4xl font-bold mt-4 mb-2">DrawingMind</h1>
         
         <!-- Кнопка Demo Mode -->
-        <button class="demo-btn">
-            <span class="star-icon">★</span> Demo Mode
+        <button id="demo-btn" class="inline-flex items-center bg-telegram-primary bg-opacity-15 text-telegram-primary px-4 py-2 rounded-full text-sm font-medium mb-6 self-start transition-all hover:bg-opacity-25">
+            <span class="mr-1">★</span> Demo Mode
         </button>
 
         <!-- Основной контент -->
-        <main>
-            <h2 class="title">Analyze Your Child's Drawing</h2>
+        <main class="flex-1 text-left">
+            <h2 class="text-3xl font-bold mb-2">Analyze Your Child's Drawing</h2>
             
-            <p class="description">
+            <p class="text-telegram-secondary text-lg mb-8 max-w-xl">
                 Upload a drawing to receive insights about your child's development, creativity, and emotional state.
             </p>
             
-            <div class="upload-container">
-                <div class="upload-area" id="drop-area">
-                    <div class="upload-icons">
-                        <span class="icon upload-icon">⬆️</span>
-                        <span class="icon camera-icon">📷</span>
+            <div class="max-w-md mb-6">
+                <div id="drop-area" class="bg-telegram-card border-2 border-dashed border-telegram-border rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all hover:border-telegram-primary hover:bg-telegram-primary hover:bg-opacity-5">
+                    <div class="flex gap-6 mb-4">
+                        <span class="text-2xl">⬆️</span>
+                        <span class="text-2xl">📷</span>
                     </div>
-                    <p class="drop-text">Drop your child's drawing here</p>
-                    <p class="upload-hint">or click to upload from your device</p>
-                    <p class="formats-text">Supported formats: JPEG, PNG, HEIC</p>
+                    <p class="text-lg font-medium mb-1">Drop your child's drawing here</p>
+                    <p class="text-telegram-secondary text-sm mb-4">or click to upload from your device</p>
+                    <p class="text-telegram-secondary text-xs opacity-70">Supported formats: JPEG, PNG, HEIC</p>
                 </div>
                 <input type="file" id="file-upload" accept="image/jpeg,image/png,image/heic" hidden>
             </div>
             
-            <div class="selected-file" id="selected-file" hidden>
+            <div id="selected-file" class="text-telegram-secondary text-sm mb-6 hidden">
                 <p>Selected: <span id="file-name">IMG_1516.HEIC</span></p>
             </div>
             
-            <button class="analyze-btn" id="analyze-btn" disabled>
+            <button id="analyze-btn" class="bg-gray-500 text-white px-6 py-3 rounded-lg font-semibold w-full max-w-xs transition-all disabled:opacity-70 disabled:cursor-not-allowed enabled:hover:bg-telegram-primary" disabled>
                 Analyze Drawing
             </button>
         </main>
 
         <!-- Модальное окно с результатами анализа -->
-        <div class="modal" id="results-modal" hidden>
-            <div class="modal-content">
-                <span class="close-btn">&times;</span>
-                <h3>Analysis Results</h3>
+        <div id="results-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden">
+            <div class="bg-telegram-card rounded-xl p-6 max-w-[90%] w-[600px] max-h-[90vh] overflow-y-auto relative">
+                <span class="close-btn absolute top-4 right-4 text-2xl text-telegram-secondary cursor-pointer hover:text-telegram-text">&times;</span>
+                <h3 class="text-xl font-bold mb-6">Analysis Results</h3>
                 <div class="results-container">
                     <!-- Здесь будут отображаться результаты анализа -->
                 </div>

@@ -11,7 +11,7 @@ const analyzeBtn = document.getElementById('analyze-btn');
 const resultsModal = document.getElementById('results-modal');
 const resultsContainer = document.querySelector('.results-container');
 const closeModalBtn = document.querySelector('.close-btn');
-const demoBtn = document.querySelector('.demo-btn');
+const demoBtn = document.getElementById('demo-btn');
 
 // Переменная для отслеживания демо-режима
 let demoMode = false;
@@ -29,11 +29,12 @@ function handleImageUpload(file) {
     
     // Показываем имя выбранного файла
     fileName.textContent = file.name;
-    selectedFileContainer.hidden = false;
+    selectedFileContainer.classList.remove('hidden');
     
     // Активируем кнопку анализа
     analyzeBtn.disabled = false;
-    analyzeBtn.style.backgroundColor = '#8A7CFF';
+    analyzeBtn.classList.remove('bg-gray-500');
+    analyzeBtn.classList.add('bg-telegram-primary');
 }
 
 // Функция для отправки изображения на сервер для анализа
@@ -44,7 +45,7 @@ async function analyzeImage() {
     // Показываем индикатор загрузки
     const originalText = analyzeBtn.textContent;
     analyzeBtn.textContent = 'Analyzing...';
-    analyzeBtn.classList.add('loading');
+    analyzeBtn.classList.add('animate-pulse');
     analyzeBtn.disabled = true;
     
     try {
@@ -83,9 +84,10 @@ async function analyzeImage() {
     } finally {
         // Восстанавливаем кнопку
         analyzeBtn.textContent = originalText;
-        analyzeBtn.classList.remove('loading');
+        analyzeBtn.classList.remove('animate-pulse');
         analyzeBtn.disabled = false;
-        analyzeBtn.style.backgroundColor = '#8A7CFF';
+        analyzeBtn.classList.remove('bg-gray-500');
+        analyzeBtn.classList.add('bg-telegram-primary');
     }
 }
 
@@ -99,43 +101,43 @@ function displayResults(results) {
     
     // Добавляем каждый раздел анализа
     if (results.psychologicalAge) {
-        resultsHTML += `<div class="result-item">
-            <h4>Psychological Age</h4>
+        resultsHTML += `<div class="mb-6 pb-4 border-b border-telegram-border">
+            <h4 class="text-telegram-primary-light font-medium mb-2">Psychological Age</h4>
             <p>${results.psychologicalAge}</p>
         </div>`;
     }
     
     if (results.imaginationLevel) {
-        resultsHTML += `<div class="result-item">
-            <h4>Imagination & Intelligence</h4>
+        resultsHTML += `<div class="mb-6 pb-4 border-b border-telegram-border">
+            <h4 class="text-telegram-primary-light font-medium mb-2">Imagination & Intelligence</h4>
             <p>${results.imaginationLevel}</p>
         </div>`;
     }
     
     if (results.emotionalIntelligence) {
-        resultsHTML += `<div class="result-item">
-            <h4>Emotional Intelligence</h4>
+        resultsHTML += `<div class="mb-6 pb-4 border-b border-telegram-border">
+            <h4 class="text-telegram-primary-light font-medium mb-2">Emotional Intelligence</h4>
             <p>${results.emotionalIntelligence}</p>
         </div>`;
     }
     
     if (results.developmentLevel) {
-        resultsHTML += `<div class="result-item">
-            <h4>Mental & Emotional Development</h4>
+        resultsHTML += `<div class="mb-6 pb-4 border-b border-telegram-border">
+            <h4 class="text-telegram-primary-light font-medium mb-2">Mental & Emotional Development</h4>
             <p>${results.developmentLevel}</p>
         </div>`;
     }
     
     if (results.physicalState) {
-        resultsHTML += `<div class="result-item">
-            <h4>Physical & Psychological State</h4>
+        resultsHTML += `<div class="mb-6 pb-4 border-b border-telegram-border">
+            <h4 class="text-telegram-primary-light font-medium mb-2">Physical & Psychological State</h4>
             <p>${results.physicalState}</p>
         </div>`;
     }
     
     if (results.recommendations) {
-        resultsHTML += `<div class="result-item recommendations">
-            <h4>Recommendations</h4>
+        resultsHTML += `<div class="mb-6 pb-4 border-b border-telegram-border">
+            <h4 class="text-telegram-primary-light font-medium mb-2">Recommendations</h4>
             <p>${results.recommendations}</p>
         </div>`;
     }
@@ -144,7 +146,7 @@ function displayResults(results) {
     resultsContainer.innerHTML = resultsHTML;
     
     // Показываем модальное окно
-    resultsModal.hidden = false;
+    resultsModal.classList.remove('hidden');
 }
 
 // Функция для отображения демо-результатов
@@ -180,29 +182,29 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Обработчик для закрытия модального окна
     closeModalBtn.addEventListener('click', () => {
-        resultsModal.hidden = true;
+        resultsModal.classList.add('hidden');
     });
     
     // Закрытие модального окна при клике вне его содержимого
     resultsModal.addEventListener('click', (e) => {
         if (e.target === resultsModal) {
-            resultsModal.hidden = true;
+            resultsModal.classList.add('hidden');
         }
     });
     
     // Обработка Drag and Drop для загрузки изображений
     dropArea.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dropArea.classList.add('dragover');
+        dropArea.classList.add('border-telegram-primary', 'bg-telegram-primary', 'bg-opacity-5');
     });
     
     dropArea.addEventListener('dragleave', () => {
-        dropArea.classList.remove('dragover');
+        dropArea.classList.remove('border-telegram-primary', 'bg-telegram-primary', 'bg-opacity-5');
     });
     
     dropArea.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropArea.classList.remove('dragover');
+        dropArea.classList.remove('border-telegram-primary', 'bg-telegram-primary', 'bg-opacity-5');
         
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             const file = e.dataTransfer.files[0];
@@ -220,10 +222,12 @@ document.addEventListener('DOMContentLoaded', () => {
         demoMode = !demoMode;
         
         if (demoMode) {
-            demoBtn.style.backgroundColor = 'rgba(138, 124, 255, 0.3)';
+            demoBtn.classList.remove('bg-opacity-15');
+            demoBtn.classList.add('bg-opacity-30');
             alert('Demo mode activated. Analysis will show sample results.');
         } else {
-            demoBtn.style.backgroundColor = 'rgba(138, 124, 255, 0.15)';
+            demoBtn.classList.remove('bg-opacity-30');
+            demoBtn.classList.add('bg-opacity-15');
             alert('Demo mode deactivated.');
         }
     });
