@@ -44,9 +44,17 @@ templates_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web/te
 templates = Jinja2Templates(directory=templates_dir)
 logger.info(f"Шаблоны инициализированы из директории: {templates_dir}")
 
+# Глобальная переменная для хранения экземпляра бота
+bot_app = None
+
 @app.get("/health")
 async def health_check():
-    return JSONResponse({"status": "healthy", "bot_token_preview": f"{BOT_TOKEN[:5]}...{BOT_TOKEN[-5:]}"})
+    bot_status = "running" if bot_app and bot_app.is_running else "not running"
+    return JSONResponse({
+        "status": "healthy", 
+        "bot_token_preview": f"{BOT_TOKEN[:5]}...{BOT_TOKEN[-5:]}", 
+        "bot_status": bot_status
+    })
 
 @app.get("/")
 async def index(request: Request):
@@ -55,11 +63,13 @@ async def index(request: Request):
 
 @app.get("/railway")
 async def railway_root():
+    bot_status = "running" if bot_app and bot_app.is_running else "not running"
     return JSONResponse({
         "status": "DrawingMind is running", 
         "version": "1.0.0",
         "environment": os.environ.get("RAILWAY_ENVIRONMENT", "unknown"),
-        "bot_token_preview": f"{BOT_TOKEN[:5]}...{BOT_TOKEN[-5:]}"
+        "bot_token_preview": f"{BOT_TOKEN[:5]}...{BOT_TOKEN[-5:]}",
+        "bot_status": bot_status
     })
 
 # Обработчик команды /start для Telegram бота
@@ -109,29 +119,48 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def run_bot():
     """Запускает Telegram бота."""
-    logger.info("Запуск бота")
+    global bot_app
+    logger.info("Инициализация бота")
     
-    # Создаем приложение
-    application = Application.builder().token(BOT_TOKEN).build()
+    try:
+        # Создаем приложение
+        bot_app = Application.builder().token(BOT_TOKEN).build()
 
-    # Регистрируем обработчики
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("webapp", webapp))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+        # Регистрируем обработчики
+        bot_app.add_handler(CommandHandler("start", start))
+        bot_app.add_handler(CommandHandler("webapp", webapp))
+        bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
-    # Запускаем бота
-    logger.info("Бот запущен")
-    await application.initialize()
-    await application.start()
-    await application.run_polling(allowed_updates=Update.ALL_TYPES)
+        # Запускаем бота
+        logger.info("Запуск бота...")
+        await bot_app.initialize()
+        await bot_app.start()
+        logger.info("Бот успешно запущен")
+        
+        # Запускаем polling в бесконечном цикле
+        async with bot_app:
+            logger.info("Запуск polling...")
+            await bot_app.run_polling(allowed_updates=Update.ALL_TYPES)
+    except Exception as e:
+        logger.error(f"Ошибка при запуске бота: {str(e)}")
+        raise
 
-@app.on_event("startup")
-async def startup_event():
-    """Запускает бота при старте FastAPI приложения."""
+async def run_web():
+    """Запускает веб-сервер."""
+    config = uvicorn.Config(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+    server = uvicorn.Server(config)
+    await server.serve()
+
+async def main():
+    """Запускает и веб-сервер, и бота."""
     logger.info("Запуск приложения")
-    asyncio.create_task(run_bot())
+    
+    # Запускаем бота и веб-сервер параллельно
+    await asyncio.gather(
+        run_bot(),
+        run_web()
+    )
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    logger.info(f"Запуск сервера на порту {port}")
-    uvicorn.run(app, host="0.0.0.0", port=port) 
+    # Запускаем все асинхронно
+    asyncio.run(main()) 
