@@ -3,4 +3,5 @@ uvicorn
 python-telegram-bot==20.0b0
 openai
 jinja2
-aiofiles 
+aiofiles
+python-multipart 
