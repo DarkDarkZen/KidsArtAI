@@ -1,13 +1,13 @@
 :root {
     /* Основные цвета */
     --primary-color: #8A7CFF; /* Фиолетовый */
-    --primary-dark: #6A5AE0; /* Темно-фиолетовый */
-    --background-color: #121212; /* Темный фон */
-    --background-secondary: #1E1E1E; /* Чуть светлее фон для элементов */
-    --card-background: #242731; /* Фон для карточек */
+    --primary-light: #9f93ff; /* Светло-фиолетовый */
+    --background-color: #17212b; /* Темный фон Telegram */
+    --background-secondary: #232e3c; /* Чуть светлее фон для элементов */
+    --card-background: #242f3d; /* Фон для карточек */
     --text-color: #FFFFFF; /* Белый текст */
-    --text-secondary: #A0A0A0; /* Серый текст */
-    --border-color: #2A2A2A; /* Цвет границ */
+    --text-secondary: #91a3b5; /* Серый текст */
+    --border-color: #3b4a5a; /* Цвет границ */
     
     /* Размеры и отступы */
     --border-radius: 12px;
@@ -45,32 +45,18 @@ body {
     min-height: 100vh;
 }
 
-/* Стили для шапки */
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--spacing-md) 0;
-    margin-bottom: var(--spacing-lg);
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-}
-
-.brain-icon {
-    margin-right: var(--spacing-sm);
-}
-
-.logo h1 {
-    font-size: 1.5rem;
-    font-weight: 600;
+/* Заголовок приложения */
+.app-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-md);
     color: var(--text-color);
+    text-align: left;
 }
 
+/* Кнопка Demo Mode */
 .demo-btn {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     background-color: rgba(138, 124, 255, 0.15);
     color: var(--primary-color);
@@ -81,14 +67,17 @@ header {
     font-size: 0.9rem;
     font-weight: 500;
     transition: all 0.2s ease;
+    margin-bottom: var(--spacing-lg);
+    align-self: flex-start;
 }
 
 .demo-btn:hover {
     background-color: rgba(138, 124, 255, 0.25);
 }
 
-.sparkle-icon {
+.star-icon {
     margin-right: var(--spacing-xs);
+    color: var(--primary-color);
 }
 
 /* Основной контент */
@@ -96,8 +85,7 @@ main {
     flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
+    text-align: left;
 }
 
 .title {
@@ -144,6 +132,10 @@ main {
     margin-bottom: var(--spacing-md);
 }
 
+.icon {
+    font-size: 1.5rem;
+}
+
 .drop-text {
     font-size: 1.1rem;
     font-weight: 500;
@@ -171,11 +163,11 @@ main {
 }
 
 .analyze-btn {
-    background-color: var(--primary-color);
+    background-color: #7d7d7d;
     color: white;
     border: none;
     padding: 12px 24px;
-    border-radius: 50px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 1rem;
     font-weight: 600;
@@ -185,15 +177,14 @@ main {
 }
 
 .analyze-btn:hover:not([disabled]) {
-    background-color: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(138, 124, 255, 0.3);
+    background-color: var(--primary-color);
 }
 
 .analyze-btn[disabled] {
-    background-color: var(--border-color);
-    color: var(--text-secondary);
+    background-color: #7d7d7d;
+    color: var(--text-color);
     cursor: not-allowed;
+    opacity: 0.7;
 }
 
 /* Модальное окно */
@@ -237,6 +228,17 @@ main {
 
 .results-container {
     margin-top: var(--spacing-lg);
+}
+
+.result-item {
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.result-item h4 {
+    margin-bottom: var(--spacing-sm);
+    color: var(--primary-light);
 }
 
 /* Адаптивность */

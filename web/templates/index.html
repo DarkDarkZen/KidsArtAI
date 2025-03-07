@@ -1,51 +1,35 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrawingMind - Анализ детских рисунков</title>
+    <title>DrawingMind - Analyze Child's Drawing</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
     <script src="https://telegram.org/js/telegram-web-app.js" async></script>
 </head>
 <body>
     <div class="container">
-        <!-- Шапка с логотипом и кнопкой Demo Mode -->
-        <header>
-            <div class="logo">
-                <svg class="brain-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="#8A7CFF"/>
-                    <path d="M13 7H11V9H13V7Z" fill="#8A7CFF"/>
-                    <path d="M13 11H11V17H13V11Z" fill="#8A7CFF"/>
-                </svg>
-                <h1>DrawingMind</h1>
-            </div>
-            <button class="demo-btn">
-                <svg class="sparkle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#8A7CFF"/>
-                </svg>
-                Demo Mode
-            </button>
-        </header>
+        <!-- Заголовок -->
+        <h1 class="app-title">DrawingMind</h1>
+        
+        <!-- Кнопка Demo Mode -->
+        <button class="demo-btn">
+            <span class="star-icon">★</span> Demo Mode
+        </button>
 
         <!-- Основной контент -->
         <main>
-            <h2 class="title" data-lang-key="main-title">Analyze Your Child's Drawing</h2>
+            <h2 class="title">Analyze Your Child's Drawing</h2>
             
-            <p class="description" data-lang-key="main-description">
+            <p class="description">
                 Upload a drawing to receive insights about your child's development, creativity, and emotional state.
             </p>
             
             <div class="upload-container">
                 <div class="upload-area" id="drop-area">
                     <div class="upload-icons">
-                        <svg class="upload-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 16H15V10H19L12 3L5 10H9V16Z" fill="#8A7CFF"/>
-                            <path d="M5 18H19V20H5V18Z" fill="#8A7CFF"/>
-                        </svg>
-                        <svg class="camera-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 15.2C13.7673 15.2 15.2 13.7673 15.2 12C15.2 10.2327 13.7673 8.8 12 8.8C10.2327 8.8 8.8 10.2327 8.8 12C8.8 13.7673 10.2327 15.2 12 15.2Z" fill="#8A7CFF"/>
-                            <path d="M9 2L7.17 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4H16.83L15 2H9ZM12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17Z" fill="#8A7CFF"/>
-                        </svg>
+                        <span class="icon upload-icon">⬆️</span>
+                        <span class="icon camera-icon">📷</span>
                     </div>
                     <p class="drop-text">Drop your child's drawing here</p>
                     <p class="upload-hint">or click to upload from your device</p>
@@ -67,7 +51,7 @@
         <div class="modal" id="results-modal" hidden>
             <div class="modal-content">
                 <span class="close-btn">&times;</span>
-                <h3 data-lang-key="analysis-results">Analysis Results</h3>
+                <h3>Analysis Results</h3>
                 <div class="results-container">
                     <!-- Здесь будут отображаться результаты анализа -->
                 </div>

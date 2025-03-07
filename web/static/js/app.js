@@ -2,99 +2,19 @@
 let tg = window.Telegram.WebApp;
 tg.expand(); // Расширяем на весь экран
 
-// Словарь для мультиязычности
-const translations = {
-    'ru': {
-        'main-title': 'Анализ рисунка ребёнка',
-        'main-description': 'Вы можете понять эмоциональное и психологическое состояние ребёнка, своевременно принять меры для поддержки и развития ребёнка, создать более доверительные и гармоничные отношения в семье.',
-        'take-photo': 'Сделать фото рисунка',
-        'upload-drawing': 'Загрузить рисунок',
-        'preview-placeholder': 'Предпросмотр рисунка',
-        'analyze-btn': 'Проанализировать',
-        'analysis-results': 'Результаты анализа',
-        'loading': 'Загрузка...',
-        'error-upload': 'Ошибка при загрузке файла',
-        'error-analysis': 'Ошибка при анализе рисунка',
-        'free-analysis': 'Первый анализ бесплатный',
-        'payment-required': 'Для продолжения необходимо оплатить анализ',
-        'payment-options': 'Варианты оплаты',
-        'pay-single': '100 ₽ за 1 анализ',
-        'pay-month': '1000 ₽ за месяц',
-        'pay-year': '10000 ₽ за год'
-    },
-    'en': {
-        'main-title': 'Child Drawing Analysis',
-        'main-description': 'You can understand the emotional and psychological state of your child, take timely measures to support and develop the child, and create more trusting and harmonious relationships in the family.',
-        'take-photo': 'Take a photo of the drawing',
-        'upload-drawing': 'Upload drawing',
-        'preview-placeholder': 'Drawing preview',
-        'analyze-btn': 'Analyze',
-        'analysis-results': 'Analysis Results',
-        'loading': 'Loading...',
-        'error-upload': 'Error uploading file',
-        'error-analysis': 'Error analyzing drawing',
-        'free-analysis': 'First analysis is free',
-        'payment-required': 'Payment required to continue',
-        'payment-options': 'Payment options',
-        'pay-single': '100 ₽ for 1 analysis',
-        'pay-month': '1000 ₽ for a month',
-        'pay-year': '10000 ₽ for a year'
-    }
-};
-
-// Текущий язык (по умолчанию русский)
-let currentLang = 'ru';
-
 // DOM-элементы
-const langButtons = document.querySelectorAll('.lang-btn');
-const cameraBtn = document.querySelector('.camera-btn');
-const uploadBtn = document.querySelector('.upload-btn');
+const dropArea = document.getElementById('drop-area');
 const fileInput = document.getElementById('file-upload');
-const previewImage = document.getElementById('preview-image');
-const previewPlaceholder = document.querySelector('.preview-placeholder');
-const analyzeBtn = document.querySelector('.analyze-btn');
+const selectedFileContainer = document.getElementById('selected-file');
+const fileName = document.getElementById('file-name');
+const analyzeBtn = document.getElementById('analyze-btn');
 const resultsModal = document.getElementById('results-modal');
 const resultsContainer = document.querySelector('.results-container');
 const closeModalBtn = document.querySelector('.close-btn');
-const dropArea = document.getElementById('drop-area');
-const selectedFileContainer = document.getElementById('selected-file');
-const fileName = document.getElementById('file-name');
 const demoBtn = document.querySelector('.demo-btn');
 
-// Функция для изменения языка
-function changeLanguage(lang) {
-    currentLang = lang;
-    
-    // Обновляем активную кнопку языка
-    langButtons.forEach(btn => {
-        if (btn.dataset.lang === lang) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-    
-    // Обновляем все тексты с атрибутом data-lang-key
-    document.querySelectorAll('[data-lang-key]').forEach(element => {
-        const key = element.dataset.langKey;
-        if (translations[lang][key]) {
-            element.textContent = translations[lang][key];
-        }
-    });
-    
-    // Сохраняем выбранный язык в localStorage
-    localStorage.setItem('kidsArtAI_lang', lang);
-}
-
-// Инициализация языка из localStorage или по умолчанию
-function initLanguage() {
-    const savedLang = localStorage.getItem('kidsArtAI_lang');
-    if (savedLang && (savedLang === 'ru' || savedLang === 'en')) {
-        changeLanguage(savedLang);
-    } else {
-        changeLanguage('ru'); // По умолчанию русский
-    }
-}
+// Переменная для отслеживания демо-режима
+let demoMode = false;
 
 // Обработка загрузки изображения
 function handleImageUpload(file) {
@@ -113,6 +33,7 @@ function handleImageUpload(file) {
     
     // Активируем кнопку анализа
     analyzeBtn.disabled = false;
+    analyzeBtn.style.backgroundColor = '#8A7CFF';
 }
 
 // Функция для отправки изображения на сервер для анализа
@@ -164,11 +85,9 @@ async function analyzeImage() {
         analyzeBtn.textContent = originalText;
         analyzeBtn.classList.remove('loading');
         analyzeBtn.disabled = false;
+        analyzeBtn.style.backgroundColor = '#8A7CFF';
     }
 }
-
-// Переменная для отслеживания демо-режима
-let demoMode = false;
 
 // Функция для отображения результатов анализа
 function displayResults(results) {
@@ -244,54 +163,9 @@ function displayDemoResults() {
 
 // Обработчики событий
 document.addEventListener('DOMContentLoaded', () => {
-    // Инициализация языка
-    initLanguage();
-    
-    // Обработчики для кнопок языка
-    langButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            changeLanguage(btn.dataset.lang);
-        });
-    });
-    
-    // Обработчик для кнопки загрузки
-    uploadBtn.addEventListener('click', () => {
+    // Обработчик для области загрузки
+    dropArea.addEventListener('click', () => {
         fileInput.click();
-    });
-    
-    // Обработчик для кнопки камеры (для мобильных устройств)
-    cameraBtn.addEventListener('click', () => {
-        // Проверяем, поддерживается ли камера
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            // Для Telegram Mini App лучше использовать встроенный функционал
-            if (tg.showScanQrPopup) {
-                // Используем Telegram API для доступа к камере
-                tg.showScanQrPopup({
-                    text: translations[currentLang]['take-photo']
-                });
-            } else {
-                // Запасной вариант - использовать стандартный input с типом file и атрибутом capture
-                const tempInput = document.createElement('input');
-                tempInput.type = 'file';
-                tempInput.accept = 'image/*';
-                tempInput.capture = 'camera';
-                
-                tempInput.addEventListener('change', (e) => {
-                    if (e.target.files && e.target.files[0]) {
-                        handleImageUpload(e.target.files[0]);
-                        
-                        // Копируем файл в основной input
-                        const dataTransfer = new DataTransfer();
-                        dataTransfer.items.add(e.target.files[0]);
-                        fileInput.files = dataTransfer.files;
-                    }
-                });
-                
-                tempInput.click();
-            }
-        } else {
-            alert('Камера не поддерживается на вашем устройстве');
-        }
     });
     
     // Обработчик изменения файла
