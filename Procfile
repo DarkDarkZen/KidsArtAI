@@ -1,2 +1,1 @@
-web: python web/main.py
-worker: python webapp_bot.py 
+web: python combined_app.py 
