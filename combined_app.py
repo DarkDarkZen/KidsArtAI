@@ -10,13 +10,37 @@ import uvicorn
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
-# Настройка логирования
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO,
-    stream=sys.stdout  # Явно указываем вывод в stdout
-)
+# Настройка логирования для корневого логгера
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
+
+# Создаем форматтер
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# Создаем обработчик для stdout
+stdout_handler = logging.StreamHandler(sys.stdout)
+stdout_handler.setFormatter(formatter)
+
+# Очищаем существующие обработчики и добавляем новый
+root_logger.handlers.clear()
+root_logger.addHandler(stdout_handler)
+
+# Настраиваем логгер для нашего приложения
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Отключаем передачу логов родительским логгерам
+logger.propagate = False
+
+# Добавляем тот же обработчик к логгеру приложения
+logger.addHandler(stdout_handler)
+
+# Настраиваем логгер для uvicorn
+uvicorn_logger = logging.getLogger("uvicorn")
+uvicorn_logger.handlers.clear()
+uvicorn_logger.addHandler(stdout_handler)
+
+logger.info("Инициализация приложения DrawingMind")
 
 # Получение токена бота из переменных окружения
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -32,7 +56,12 @@ WEBAPP_URL = os.getenv("WEBAPP_URL", "https://kidsartai-production.up.railway.ap
 logger.info(f"URL для Telegram Mini App: {WEBAPP_URL}")
 
 # Создаем FastAPI приложение
-app = FastAPI(title="DrawingMind API", version="1.0.0")
+app = FastAPI(
+    title="DrawingMind API",
+    version="1.0.0",
+    description="API для анализа детских рисунков"
+)
+logger.info("FastAPI приложение создано")
 
 # Подключение статических файлов
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web/static")
@@ -56,10 +85,17 @@ bot_app = None
 bot_task = None
 startup_time = None
 
+@app.get("/")
+async def root():
+    """Корневой эндпоинт"""
+    logger.info("Получен запрос к корневому эндпоинту")
+    return {"message": "DrawingMind API is running"}
+
 @app.get("/health")
 async def health_check():
     """Эндпоинт проверки состояния приложения"""
     global bot_app, bot_task, startup_time
+    logger.info("Получен запрос к эндпоинту /health")
     try:
         bot_status = "running" if bot_app and bot_app.is_running else "not running"
         task_status = "running" if bot_task and not bot_task.done() else "not running"
@@ -73,12 +109,13 @@ async def health_check():
                 "polling": task_status
             }
         }
-        logger.debug(f"Health check response: {response}")
+        logger.info(f"Health check response: {response}")
         return JSONResponse(response)
     except Exception as e:
-        logger.error(f"Ошибка при проверке состояния: {str(e)}")
+        error_msg = f"Ошибка при проверке состояния: {str(e)}"
+        logger.error(error_msg)
         return JSONResponse(
-            {"status": "unhealthy", "error": str(e)},
+            {"status": "unhealthy", "error": error_msg},
             status_code=500
         )
 
@@ -86,6 +123,7 @@ async def health_check():
 async def railway_root():
     """Эндпоинт информации о развертывании"""
     global bot_app, bot_task, startup_time
+    logger.info("Получен запрос к эндпоинту /railway")
     try:
         bot_status = "running" if bot_app and bot_app.is_running else "not running"
         task_status = "running" if bot_task and not bot_task.done() else "not running"
@@ -101,14 +139,25 @@ async def railway_root():
                 "polling": task_status
             }
         }
-        logger.debug(f"Railway status response: {response}")
+        logger.info(f"Railway status response: {response}")
         return JSONResponse(response)
     except Exception as e:
-        logger.error(f"Ошибка при получении статуса Railway: {str(e)}")
+        error_msg = f"Ошибка при получении статуса Railway: {str(e)}"
+        logger.error(error_msg)
         return JSONResponse(
-            {"status": "error", "error": str(e)},
+            {"status": "error", "error": error_msg},
             status_code=500
         )
+
+async def run_polling():
+    """Запускает polling для Telegram бота"""
+    global bot_app
+    logger.info("Запуск polling для бота...")
+    try:
+        await bot_app.run_polling(allowed_updates=Update.ALL_TYPES)
+    except Exception as e:
+        logger.error(f"Ошибка в процессе polling: {str(e)}")
+        raise
 
 @app.on_event("startup")
 async def startup_event():
@@ -137,7 +186,8 @@ async def startup_event():
         bot_task = asyncio.create_task(run_polling())
         logger.info("Задача polling запущена")
     except Exception as e:
-        logger.error(f"Критическая ошибка при запуске бота: {str(e)}")
+        error_msg = f"Критическая ошибка при запуске бота: {str(e)}"
+        logger.error(error_msg)
         if bot_app:
             await bot_app.shutdown()
         raise
@@ -169,10 +219,17 @@ async def shutdown_event():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     logger.info(f"Запуск сервера на порту {port}")
-    uvicorn.run(
+    
+    # Настройка конфигурации uvicorn
+    config = uvicorn.Config(
         app,
         host="0.0.0.0",
         port=port,
         log_level="info",
-        access_log=True
-    ) 
+        access_log=True,
+        log_config=None  # Отключаем встроенную конфигурацию логирования
+    )
+    
+    # Запуск сервера
+    server = uvicorn.Server(config)
+    server.run() 
