@@ -1,6 +1,7 @@
 fastapi
 uvicorn
-python-telegram-bot==20.0b0
+python-telegram-bot>=20.4
 openai
 jinja2
+aiofiles
 python-multipart 

@@ -14,4 +14,8 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     print("Предупреждение: Переменная окружения OPENAI_API_KEY не установлена.")
     print("Некоторые функции, связанные с OpenAI, могут быть недоступны.")
-    # Не завершаем работу, так как это может быть не критично на начальном этапе 
+    # Не завершаем работу, так как это может быть не критично на начальном этапе
+
+# URL для Telegram Mini App
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://kidsartai-production.up.railway.app")
+print(f"Используется URL для Telegram Mini App: {WEBAPP_URL}") 
